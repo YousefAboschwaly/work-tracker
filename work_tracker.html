@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Work Tracker Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0f0f23 0%,
+          #1a1a2e 50%,
+          #16213e 100%
+        );
+        color: #e0e6ed;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .header h1 {
+        font-size: 3rem;
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
+        animation: glow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes glow {
+        from {
+          filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
+        }
+        to {
+          filter: drop-shadow(0 0 20px rgba(118, 75, 162, 0.5));
+        }
+      }
+
+      .header p {
+        color: #a0a6b8;
+        font-size: 1.1rem;
+      }
+
+      .form-section {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: slideUp 0.6s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .input-group {
+        position: relative;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #b0b6c3;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+
+      .input-group input,
+      .input-group textarea,
+      .input-group select {
+        width: 100%;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #e0e6ed;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      .input-group input:focus,
+      .input-group textarea:focus,
+      .input-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .input-group textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .progress-slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        transition: all 0.3s ease;
+      }
+
+      .progress-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+      }
+
+      .progress-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+
+      .progress-slider::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+      }
+
+      .progress-slider::-moz-range-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+
+      .progress-slider::-webkit-slider-track {
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .progress-slider::-moz-range-track {
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+      }
+
+      .error-message {
+        color: #ff6b6b;
+        font-size: 0.9rem;
+        margin-top: 5px;
+        display: none;
+        animation: shake 0.5s ease-in-out;
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+
+      .input-error {
+        border-color: #ff6b6b !important;
+        background: rgba(255, 107, 107, 0.1) !important;
+        box-shadow: 0 0 15px rgba(255, 107, 107, 0.3) !important;
+      }
+
+      .btn {
+        padding: 15px 30px;
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .btn:hover::before {
+        left: 100%;
+      }
+
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn:active {
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(45deg, #4ecdc4 0%, #44a08d 100%);
+      }
+
+      .btn-danger {
+        background: linear-gradient(45deg, #ff6b6b 0%, #ee5a52 100%);
+      }
+
+      .work-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .work-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        animation: cardSlide 0.5s ease-out;
+      }
+
+      @keyframes cardSlide {
+        from {
+          opacity: 0;
+          transform: scale(0.95) translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      .work-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        border-color: rgba(102, 126, 234, 0.3);
+      }
+
+      .work-card h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 1.4rem;
+      }
+
+      .work-info {
+        margin-bottom: 15px;
+      }
+
+      .work-info span {
+        display: inline-block;
+        margin-bottom: 8px;
+        color: #b0b6c3;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 10px 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(45deg, #4ecdc4 0%, #44a08d 100%);
+        border-radius: 6px;
+        transition: width 0.8s ease;
+        position: relative;
+      }
+
+      .progress-fill::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.3) 50%,
+          transparent 70%
+        );
+        animation: shimmer 2s infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .work-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .work-actions button {
+        flex: 1;
+        padding: 10px;
+        font-size: 14px;
+      }
+
+      .chart-container {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .chart-wrapper {
+        position: relative;
+        height: 400px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #7b8794;
+      }
+
+      .empty-state h3 {
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-3px);
+      }
+
+      .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        color: #b0b6c3;
+        font-size: 0.9rem;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .modal {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        max-width: 500px;
+        width: 90%;
+        animation: modalSlide 0.4s ease-out;
+      }
+
+      @keyframes modalSlide {
+        from {
+          opacity: 0;
+          transform: scale(0.7) translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      .modal h2 {
+        color: #667eea;
+        margin-bottom: 25px;
+        text-align: center;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #a0a6b8;
+        font-size: 24px;
+        cursor: pointer;
+        transition: color 0.3s ease;
+      }
+
+      .modal-close:hover {
+        color: #ff6b6b;
+      }
+
+      .delete-modal {
+        max-width: 400px;
+        text-align: center;
+      }
+
+      .delete-modal h3 {
+        color: #ff6b6b;
+        margin-bottom: 20px;
+      }
+
+      .delete-modal p {
+        margin-bottom: 25px;
+        color: #b0b6c3;
+        line-height: 1.5;
+      }
+
+      .delete-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+      }
+
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .close-chart {
+        background: rgba(255, 107, 107, 0.2);
+        border: 2px solid rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 18px;
+      }
+
+      .close-chart:hover {
+        background: rgba(255, 107, 107, 0.3);
+        transform: scale(1.1);
+      }
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .work-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .work-actions {
+        flex-direction: column;
+      }
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+
+        .work-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .work-actions {
+          flex-direction: column;
+        }
+      }
+      .form-row:first-of-type {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media  (max-width: 768px) {
+            .form-row:first-of-type{
+                grid-template-columns: 1fr;
+            }
+        }
+      
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Work Tracker</h1>
+        <p>Organize your tasks and track your progress</p>
+      </div>
+
+      <div class="form-section">
+        <h2 style="margin-bottom: 25px; color: #667eea">Add New Work</h2>
+        <form id="workForm">
+          <div class="form-row">
+            <div class="input-group">
+              <label for="workTitle">Work Title</label>
+              <input
+                type="text"
+                id="workTitle"
+                placeholder="Enter work title"
+              />
+              <div class="error-message" id="titleError">
+                Work title is required
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="workHours">Hours Spent</label>
+              <input
+                type="number"
+                id="workHours"
+                placeholder="0"
+                min="0"
+                step="0.5"
+              />
+              <div class="error-message" id="hoursError">Hours is required</div>
+            </div>
+            <div class="input-group">
+              <label for="workProgress"
+                >Progress: <span id="progressValue">0%</span></label
+              >
+              <input
+                type="range"
+                id="workProgress"
+                min="0"
+                max="100"
+                value="0"
+                class="progress-slider"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="workNotes">Notes</label>
+              <textarea
+                id="workNotes"
+                placeholder="Add any notes about this work..."
+              ></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn">Add Work</button>
+        </form>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" id="totalWorks">0</div>
+          <div class="stat-label">Total Works</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="totalHours">0</div>
+          <div class="stat-label">Total Hours</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="completedWorks">0</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="avgProgress">0%</div>
+          <div class="stat-label">Avg Progress</div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 30px">
+        <button class="btn btn-secondary" onclick="showChart()">
+          📊 Show Hours Chart
+        </button>
+      </div>
+
+      <div class="chart-container" id="chartContainer" style="display: none">
+        <div class="chart-header">
+          <h2 style="color: #4ecdc4; margin: 0">Work Hours Chart</h2>
+          <button
+            class="close-chart"
+            onclick="closeChart()"
+            title="Close Chart"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="workChart"></canvas>
+        </div>
+      </div>
+
+      <div class="work-grid" id="workGrid"></div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeEditModal()">✕</button>
+        <h2>Edit Work</h2>
+        <form id="editForm">
+          <div class="form-row">
+            <div class="input-group">
+              <label for="editWorkTitle">Work Title</label>
+              <input
+                type="text"
+                id="editWorkTitle"
+                placeholder="Enter work title"
+              />
+              <div class="error-message" id="editTitleError">
+                Work title is required
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="editWorkHours">Hours Spent</label>
+              <input
+                type="number"
+                id="editWorkHours"
+                placeholder="0"
+                min="0"
+                step="0.5"
+              />
+              <div class="error-message" id="editHoursError">
+                Hours is required
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="editWorkProgress"
+                >Progress: <span id="editProgressValue">0%</span></label
+              >
+              <input
+                type="range"
+                id="editWorkProgress"
+                min="0"
+                max="100"
+                value="0"
+                class="progress-slider"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="editWorkNotes">Notes</label>
+              <textarea
+                id="editWorkNotes"
+                placeholder="Add any notes about this work..."
+              ></textarea>
+            </div>
+          </div>
+          <div style="text-align: center; margin-top: 20px">
+            <button type="submit" class="btn">Update Work</button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              onclick="closeEditModal()"
+              style="margin-left: 10px"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal-overlay" id="deleteModal">
+      <div class="modal delete-modal">
+        <h3>Delete Work Item</h3>
+        <p>
+          Are you sure you want to delete this work item? This action cannot be
+          undone.
+        </p>
+        <div class="delete-actions">
+          <button class="btn btn-danger" onclick="confirmDelete()">
+            Yes, Delete
+          </button>
+          <button class="btn" onclick="closeDeleteModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      console.log("JavaScript loaded successfully!");
+
+      // Data storage using localStorage
+      const storage = localStorage;
+
+      let works = [];
+      let currentEditIndex = -1;
+      let currentDeleteIndex = -1;
+      try {
+        works = JSON.parse(storage.getItem("works") || "[]");
+      } catch (e) {
+        works = [];
+      }
+
+      let chart = null;
+
+      function saveWorks() {
+        try {
+          storage.setItem("works", JSON.stringify(works));
+          console.log("Works saved:", works);
+        } catch (e) {
+          console.error("Error saving works:", e);
+        }
+      }
+
+      function updateStats() {
+        const totalWorks = works.length;
+        const totalHours = works.reduce((sum, work) => sum + work.hours, 0);
+        const completedWorks = works.filter(
+          (work) => work.progress === 100
+        ).length;
+        const avgProgress =
+          totalWorks > 0
+            ? Math.round(
+                works.reduce((sum, work) => sum + work.progress, 0) / totalWorks
+              )
+            : 0;
+
+        document.getElementById("totalWorks").textContent = totalWorks;
+        document.getElementById("totalHours").textContent =
+          totalHours.toFixed(1);
+        document.getElementById("completedWorks").textContent = completedWorks;
+        document.getElementById("avgProgress").textContent = avgProgress + "%";
+      }
+
+      function renderWorks() {
+        const workGrid = document.getElementById("workGrid");
+
+        if (works.length === 0) {
+          workGrid.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No work items yet</h3>
+                        <p>Add your first work item to get started!</p>
+                    </div>
+                `;
+          return;
+        }
+
+        workGrid.innerHTML = works
+          .map(
+            (work, index) => `
+                <div class="work-card">
+                    <h3>${work.title}</h3>
+                    <div class="work-info">
+                        <span><strong>Hours:</strong> ${work.hours}</span><br>
+                        <span><strong>Progress:</strong> ${
+                          work.progress
+                        }%</span><br>
+                        ${
+                          work.notes
+                            ? `<span><strong>Notes:</strong> ${work.notes}</span><br>`
+                            : ""
+                        }
+                        <span style="color: #7b8794; font-size: 0.9rem;">Added: ${
+                          work.date
+                        }</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${
+                          work.progress
+                        }%"></div>
+                    </div>
+                    <div class="work-actions">
+                        <button class="btn" onclick="openEditModal(${index})">Edit</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal(${index})">Delete</button>
+                    </div>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      function clearErrors() {
+        const errorMessages = document.querySelectorAll(".error-message");
+        const inputs = document.querySelectorAll("input");
+
+        errorMessages.forEach((error) => (error.style.display = "none"));
+        inputs.forEach((input) => input.classList.remove("input-error"));
+      }
+
+      function validateForm() {
+        const title = document.getElementById("workTitle").value.trim();
+        const hours = document.getElementById("workHours").value.trim();
+        let isValid = true;
+
+        clearErrors();
+
+        if (!title) {
+          document.getElementById("titleError").style.display = "block";
+          document.getElementById("workTitle").classList.add("input-error");
+          isValid = false;
+        }
+
+        if (!hours || parseFloat(hours) <= 0) {
+          document.getElementById("hoursError").style.display = "block";
+          document.getElementById("workHours").classList.add("input-error");
+          isValid = false;
+        }
+
+        return isValid;
+      }
+
+      function updateProgressValue() {
+        const progressSlider = document.getElementById("workProgress");
+        const progressValue = document.getElementById("progressValue");
+
+        if (progressSlider && progressValue) {
+          progressValue.textContent = progressSlider.value + "%";
+
+          // Update slider background gradient
+          const value =
+            ((progressSlider.value - progressSlider.min) /
+              (progressSlider.max - progressSlider.min)) *
+            100;
+          progressSlider.style.background = `linear-gradient(to right, #667eea 0%, #764ba2 ${value}%, rgba(255,255,255,0.1) ${value}%, rgba(255,255,255,0.1) 100%)`;
+        }
+      }
+
+      function addWork(title, hours, progress, notes) {
+        try {
+          const work = {
+            id: Date.now(),
+            title,
+            hours: parseFloat(hours),
+            progress: parseInt(progress),
+            notes,
+            date: new Date().toLocaleDateString(),
+          };
+
+          works.unshift(work);
+          saveWorks();
+          renderWorks();
+          updateStats();
+          clearErrors();
+
+          console.log("Work added successfully:", work);
+        } catch (e) {
+          console.error("Error adding work:", e);
+        }
+      }
+
+      function openEditModal(index) {
+        currentEditIndex = index;
+        const work = works[index];
+
+        document.getElementById("editWorkTitle").value = work.title;
+        document.getElementById("editWorkHours").value = work.hours;
+        document.getElementById("editWorkProgress").value = work.progress;
+        document.getElementById("editWorkNotes").value = work.notes || "";
+
+        updateEditProgressValue();
+        clearEditErrors();
+
+        document.getElementById("editModal").style.display = "flex";
+      }
+
+      function closeEditModal() {
+        document.getElementById("editModal").style.display = "none";
+        currentEditIndex = -1;
+      }
+
+      function openDeleteModal(index) {
+        currentDeleteIndex = index;
+        document.getElementById("deleteModal").style.display = "flex";
+      }
+
+      function closeDeleteModal() {
+        document.getElementById("deleteModal").style.display = "none";
+        currentDeleteIndex = -1;
+      }
+
+      function confirmDelete() {
+        if (currentDeleteIndex !== -1) {
+          try {
+            works.splice(currentDeleteIndex, 1);
+            saveWorks();
+            renderWorks();
+            updateStats();
+            closeDeleteModal();
+            console.log("Work deleted successfully");
+          } catch (e) {
+            console.error("Error deleting work:", e);
+          }
+        }
+      }
+
+      function clearEditErrors() {
+        const errorMessages = document.querySelectorAll(
+          "#editModal .error-message"
+        );
+        const inputs = document.querySelectorAll("#editModal input");
+
+        errorMessages.forEach((error) => (error.style.display = "none"));
+        inputs.forEach((input) => input.classList.remove("input-error"));
+      }
+
+      function validateEditForm() {
+        const title = document.getElementById("editWorkTitle").value.trim();
+        const hours = document.getElementById("editWorkHours").value.trim();
+        let isValid = true;
+
+        clearEditErrors();
+
+        if (!title) {
+          document.getElementById("editTitleError").style.display = "block";
+          document.getElementById("editWorkTitle").classList.add("input-error");
+          isValid = false;
+        }
+
+        if (!hours || parseFloat(hours) <= 0) {
+          document.getElementById("editHoursError").style.display = "block";
+          document.getElementById("editWorkHours").classList.add("input-error");
+          isValid = false;
+        }
+
+        return isValid;
+      }
+
+      function updateEditProgressValue() {
+        const progressSlider = document.getElementById("editWorkProgress");
+        const progressValue = document.getElementById("editProgressValue");
+
+        if (progressSlider && progressValue) {
+          progressValue.textContent = progressSlider.value + "%";
+
+          // Update slider background gradient
+          const value =
+            ((progressSlider.value - progressSlider.min) /
+              (progressSlider.max - progressSlider.min)) *
+            100;
+          progressSlider.style.background = `linear-gradient(to right, #667eea 0%, #764ba2 ${value}%, rgba(255,255,255,0.1) ${value}%, rgba(255,255,255,0.1) 100%)`;
+        }
+      }
+
+      function closeChart() {
+        document.getElementById("chartContainer").style.display = "none";
+        if (chart) {
+          chart.destroy();
+          chart = null;
+        }
+      }
+
+      function showChart() {
+        try {
+          const chartContainer = document.getElementById("chartContainer");
+          const ctx = document.getElementById("workChart").getContext("2d");
+
+          if (works.length === 0) {
+            alert("No work data to display!");
+            return;
+          }
+
+          chartContainer.style.display = "block";
+          chartContainer.scrollIntoView({ behavior: "smooth" });
+
+          if (chart) {
+            chart.destroy();
+          }
+
+          const sortedWorks = [...works].sort((a, b) => b.hours - a.hours);
+
+          chart = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: sortedWorks.map((work) =>
+                work.title.length > 20
+                  ? work.title.substring(0, 20) + "..."
+                  : work.title
+              ),
+              datasets: [
+                {
+                  label: "Hours Spent",
+                  data: sortedWorks.map((work) => work.hours),
+                  backgroundColor: "rgba(102, 126, 234, 0.8)",
+                  borderColor: "rgba(102, 126, 234, 1)",
+                  borderWidth: 2,
+                  borderRadius: 8,
+                  borderSkipped: false,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: {
+                    color: "#e0e6ed",
+                  },
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    color: "#b0b6c3",
+                  },
+                  grid: {
+                    color: "rgba(255, 255, 255, 0.1)",
+                  },
+                },
+                x: {
+                  ticks: {
+                    color: "#b0b6c3",
+                  },
+                  grid: {
+                    color: "rgba(255, 255, 255, 0.1)",
+                  },
+                },
+              },
+            },
+          });
+
+          console.log("Chart displayed successfully");
+        } catch (e) {
+          console.error("Error showing chart:", e);
+        }
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM loaded, initializing...");
+
+        // Form submission
+        const workForm = document.getElementById("workForm");
+        if (workForm) {
+          workForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            console.log("Form submitted");
+
+            if (!validateForm()) {
+              console.log("Form validation failed");
+              return;
+            }
+
+            const title = document.getElementById("workTitle").value.trim();
+            const hours = document.getElementById("workHours").value;
+            const progress = document.getElementById("workProgress").value;
+            const notes = document.getElementById("workNotes").value.trim();
+
+            console.log("Form data:", { title, hours, progress, notes });
+
+            addWork(title, hours, progress, notes);
+            this.reset();
+            updateProgressValue(); // Reset progress display
+          });
+        }
+
+        // Progress slider event listener
+        const progressSlider = document.getElementById("workProgress");
+        if (progressSlider) {
+          progressSlider.addEventListener("input", updateProgressValue);
+        }
+
+        // Edit form submission
+        const editForm = document.getElementById("editForm");
+        if (editForm) {
+          editForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            console.log("Edit form submitted");
+
+            if (!validateEditForm()) {
+              console.log("Edit form validation failed");
+              return;
+            }
+
+            if (currentEditIndex !== -1) {
+              const title = document
+                .getElementById("editWorkTitle")
+                .value.trim();
+              const hours = document.getElementById("editWorkHours").value;
+              const progress =
+                document.getElementById("editWorkProgress").value;
+              const notes = document
+                .getElementById("editWorkNotes")
+                .value.trim();
+
+              works[currentEditIndex] = {
+                ...works[currentEditIndex],
+                title,
+                hours: parseFloat(hours),
+                progress: parseInt(progress),
+                notes,
+              };
+
+              saveWorks();
+              renderWorks();
+              updateStats();
+              closeEditModal();
+              console.log("Work updated successfully");
+            }
+          });
+        }
+
+        // Edit progress slider event listener
+        const editProgressSlider = document.getElementById("editWorkProgress");
+        if (editProgressSlider) {
+          editProgressSlider.addEventListener("input", updateEditProgressValue);
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener("click", function (e) {
+          const editModal = document.getElementById("editModal");
+          const deleteModal = document.getElementById("deleteModal");
+
+          if (e.target === editModal) {
+            closeEditModal();
+          }
+          if (e.target === deleteModal) {
+            closeDeleteModal();
+          }
+        });
+        // Initialize
+        renderWorks();
+        updateStats();
+        updateProgressValue();
+
+        console.log("Initialization complete");
+      });
+
+      // Also initialize immediately in case DOMContentLoaded already fired
+      if (document.readyState === "loading") {
+        console.log("Document still loading, waiting for DOMContentLoaded");
+      } else {
+        console.log("Document already loaded, initializing immediately");
+        // Initialize immediately if DOM is already ready
+        setTimeout(function () {
+          const workForm = document.getElementById("workForm");
+          if (workForm && !workForm.hasAttribute("data-initialized")) {
+            workForm.setAttribute("data-initialized", "true");
+            workForm.addEventListener("submit", function (e) {
+              e.preventDefault();
+              console.log("Form submitted (immediate)");
+
+              if (!validateForm()) {
+                console.log("Form validation failed");
+                return;
+              }
+
+              const title = document.getElementById("workTitle").value.trim();
+              const hours = document.getElementById("workHours").value;
+              const progress = document.getElementById("workProgress").value;
+              const notes = document.getElementById("workNotes").value.trim();
+
+              console.log("Form data:", { title, hours, progress, notes });
+
+              addWork(title, hours, progress, notes);
+              this.reset();
+              updateProgressValue();
+            });
+          }
+
+          const editForm = document.getElementById("editForm");
+          if (editForm && !editForm.hasAttribute("data-initialized")) {
+            editForm.setAttribute("data-initialized", "true");
+            editForm.addEventListener("submit", function (e) {
+              e.preventDefault();
+              console.log("Edit form submitted (immediate)");
+
+              if (!validateEditForm()) {
+                console.log("Edit form validation failed");
+                return;
+              }
+
+              if (currentEditIndex !== -1) {
+                const title = document
+                  .getElementById("editWorkTitle")
+                  .value.trim();
+                const hours = document.getElementById("editWorkHours").value;
+                const progress =
+                  document.getElementById("editWorkProgress").value;
+                const notes = document
+                  .getElementById("editWorkNotes")
+                  .value.trim();
+
+                works[currentEditIndex] = {
+                  ...works[currentEditIndex],
+                  title,
+                  hours: parseFloat(hours),
+                  progress: parseInt(progress),
+                  notes,
+                };
+
+                saveWorks();
+                renderWorks();
+                updateStats();
+                closeEditModal();
+                console.log("Work updated successfully (immediate)");
+              }
+            });
+          }
+
+          const progressSlider = document.getElementById("workProgress");
+          if (
+            progressSlider &&
+            !progressSlider.hasAttribute("data-initialized")
+          ) {
+            progressSlider.setAttribute("data-initialized", "true");
+            progressSlider.addEventListener("input", updateProgressValue);
+          }
+
+          const editProgressSlider =
+            document.getElementById("editWorkProgress");
+          if (
+            editProgressSlider &&
+            !editProgressSlider.hasAttribute("data-initialized")
+          ) {
+            editProgressSlider.setAttribute("data-initialized", "true");
+            editProgressSlider.addEventListener(
+              "input",
+              updateEditProgressValue
+            );
+          }
+
+          document.addEventListener("click", function (e) {
+            const editModal = document.getElementById("editModal");
+            const deleteModal = document.getElementById("deleteModal");
+
+            if (e.target === editModal) {
+              closeEditModal();
+            }
+            if (e.target === deleteModal) {
+              closeDeleteModal();
+            }
+          });
+
+          renderWorks();
+          updateStats();
+          updateProgressValue();
+        }, 100);
+      }
+    </script>
+  </body>
+</html>
